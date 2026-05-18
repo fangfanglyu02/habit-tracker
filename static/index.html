@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title> Habit Tracker </title>
+	<style>
+		body 
+		{
+			font-family: -apple-system, BlinkMaxSystemFont, "Segoe UI", Roboto, sans-serif;
+			max-width: 500px;
+			margin: 50px auto;
+			padding: 20px;
+			background: #f5f5f5;
+		}
+		h1{
+			color: #333;
+			text-align: center;
+		}
+		.input-group{
+			display: flex;
+			gap: 10px;
+			margin-bottom:20px;
+		}
+		input {
+			flex: 1;
+			padding: 10px;
+			font-size: 16px;
+			border: 1px solid #ddd;
+			border-radius: 5px;
+		}
+		button {
+			padding: 10px 20px;
+			background: #007bff;
+			color: white;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+		}
+		button:hover{
+			background: #0056b3;
+		}
+		ul{
+			list-style: none;
+			padding: 0;
+		}
+		li{
+			background: white;
+			padding: 12px;
+			margin-bottom: 8px;
+			border-radius: 5px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+		}
+		.done{
+			text-decoration: line-through;
+			color: gray;
+		}
+		.btn-toggle{
+			background: #28a745;
+			margin-right: 5px;
+		}
+		.btn-small{
+			padding: 5px 10px;
+			font-size: 14px;
+		}
+
+		.buttons {
+			display: flex;
+			gap: 5px;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>Habbit Tracker</h1>
+	<div class = "input-group">
+		<input type="text" id="habitName" placeholder="输入习惯，比如：刷题">
+		<button onclick="addHabit()">+添加</button>
+	</div>
+	<ul id="habitList"></ul>
+
+	<script>
+		const API_BASE= 'http://localhost:8000';
+		async function loadHabits(){
+			try{
+				const res = await fetch(`${API_BASE}/habits`);
+				const habits = await res.json();
+				const list = document.getElementById('habitList');
+				list.innerHTML='';
+				habits.forEach(habit=>{
+					const li = document.createElement('li');
+					const nameSpan = document.createElement('span');
+					nameSpan.textContent = habit.name;
+					nameSpan.className = habit.done ? 'done':'';
+
+					const buttonsDiv = document.createElement('div');
+					buttonsDiv.className = "buttons";
+
+					const toggleBtn = document.createElement('button');
+					toggleBtn.textContent = habit.done?"撤销":"完成";
+					toggleBtn.className = "btn-small btn-toggle";
+					toggleBtn.onclick = () => toggleHabit(habit.id);
+
+					const deleteBtn = document.createElement("button");
+					deleteBtn.textContent = "删除";
+					deleteBtn.className = "btn-small btn-delete";
+					deleteBtn.onclick = () => deleteHabit(habit.id);
+
+					buttonsDiv.appendChild(toggleBtn);
+					buttonsDiv.appendChild(deleteBtn);
+					li.appendChild(nameSpan);
+					li.appendChild(buttonsDiv);
+					list.appendChild(li);
+
+				});
+			}catch(error){
+				console.error("加载失败: ", error);
+			}
+		}
+
+		async function addHabit(){
+			const input = document.getElementById("habitName");
+			const name = input.value.trim();
+			if(!name) return;
+			try{
+				await fetch(`${API_BASE}/habits?name=${encodeURIComponent(name)}`,{
+					method: "POST"
+				});
+				input.value = "";
+				loadHabits();
+			}catch(error){
+				console.error("添加失败: ", error);
+			}
+		}
+
+		async function toggleHabit(id){
+			try{
+				await fetch(`${API_BASE}/habits/${id}/toggle`, {
+					method: "PUT"
+				});
+				loadHabits();
+			}catch(error){
+				console.log("切换失败: ", error);
+			}
+		}
+
+		async function deleteHabit(id){
+			try{
+				await fetch(`${API_BASE}/habits/${id}`,{
+					method: "DELETE"
+				});
+				loadHabits();
+			}catch(error){
+				console.log("删除失败: ", error);
+			}
+		}
+
+		loadHabits();
+		
+	</script>
+</body>
