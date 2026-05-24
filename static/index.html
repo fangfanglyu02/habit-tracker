@@ -91,14 +91,36 @@
 				habits.forEach(habit=>{
 					const li = document.createElement('li');
 					const nameSpan = document.createElement('span');
-					nameSpan.textContent = habit.name;
-					nameSpan.className = habit.done ? 'done':'';
+					const today = new Date();
+					const todayStr = today.toISOString().split("T")[0]
+
+					const lastDateStr = habit.last_completed_date;
+					let daysAgoText = "从未完成"
+
+					if(lastDateStr){
+						const lastDate = new Date(lastDateStr.split("T")[0])
+						const diffTime = today - lastDate;
+						const diffDays = Math.floor(diffTime/(1000*60*60*24));
+
+						if(diffDays === 0){
+							daysAgoText = "今天完成";
+						}else{
+							daysAgoText = `${diffDays}天前完成`;
+						}
+
+					}
+
+					const isDoneToday = habit.last_completed_date === todayStr;
+					nameSpan.textContent = `${habit.name}(${habit.completion_counts}次) -${daysAgoText}`;
+					//nameSpan.className = habit.done ? 'done':'';
+					nameSpan.className = isDoneToday ? 'done':'';
 
 					const buttonsDiv = document.createElement('div');
 					buttonsDiv.className = "buttons";
 
 					const toggleBtn = document.createElement('button');
-					toggleBtn.textContent = habit.done?"撤销":"完成";
+					//toggleBtn.textContent = habit.done?"撤销":"完成";
+					toggleBtn.textContent = isDoneToday?"撤销":"完成";
 					toggleBtn.className = "btn-small btn-toggle";
 					toggleBtn.onclick = () => toggleHabit(habit.id);
 

@@ -37,3 +37,9 @@ ENV/
 .pytest_cache/
 .coverage
 htmlcov/
+
+
+# misc
+agenda.md
+test_save.py
+README_private.md
